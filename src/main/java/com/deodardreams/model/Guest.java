@@ -24,7 +24,7 @@ public class Guest extends BaseEntity{
     private String lastName;
     private String city;
     private String state;
-    @Column(unique = true)
+    @Column(nullable = false)
     @Email
     private String email;
     @Column(unique = true, nullable = false)
