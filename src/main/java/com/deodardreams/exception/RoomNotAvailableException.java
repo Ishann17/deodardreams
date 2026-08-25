@@ -1,13 +1,15 @@
 package com.deodardreams.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+/**
+ * Thrown when a guest tries to book a physical unit/room product that's
+ * already reserved for an overlapping date range. Distinct from
+ * ResourceNotFoundException — the room exists, it's just unavailable
+ * for the requested dates. Converted into an HTTP 409 Conflict.
+ */
 
-public class RoomNotAvailableException extends AppException{
+public class RoomNotAvailableException extends RuntimeException{
 
-   // private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-    public RoomNotAvailableException(String message) {
+    public RoomNotAvailableException (String message){
         super(message);
     }
 }

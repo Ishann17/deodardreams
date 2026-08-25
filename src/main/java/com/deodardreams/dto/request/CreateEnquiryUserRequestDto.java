@@ -7,6 +7,7 @@ package com.deodardreams.dto.request;
  * This DTO is only for enquiry input; it does not create a Booking.
  */
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,10 +24,6 @@ public class CreateEnquiryUserRequestDto {
     )
     private String firstName;
 
-    @Pattern(
-            regexp = "^[A-Za-z ]+$",
-            message = "Name must contain letters only"
-    )
     private String lastName;
 
     @NotBlank
@@ -40,24 +37,23 @@ public class CreateEnquiryUserRequestDto {
     @Email
     private String email;
 
-    @NotNull
     @Positive
     private Integer numberOfRooms;
 
-    @NotNull
     @Positive
     private Integer numberOfAdults;
 
-    @NotNull
     @PositiveOrZero
     private Integer childrenBelow12;
 
     // Optional because the visitor may enquire without fixed stay dates.
     @FutureOrPresent
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate checkIn;
 
     // Optional because the visitor may enquire without fixed stay dates.
     @Future
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate checkOut;
 
     // Optional additional question or requirement from the visitor.

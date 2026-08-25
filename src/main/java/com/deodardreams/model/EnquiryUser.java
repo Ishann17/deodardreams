@@ -10,11 +10,15 @@ package com.deodardreams.model;
  */
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "enquiry_users")
+@Getter
+@Setter
 public class EnquiryUser extends BaseEntity{
 
     @Column(nullable = false)

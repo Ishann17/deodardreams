@@ -9,15 +9,6 @@ package com.deodardreams.dto.response;
 import java.time.LocalDate;
 
 public record EnquiryUserResponseDto(
-        Long id,
-        String firstName,
-        String lastName,
-        String mobile,
-        String email,
-        Integer numberOfRooms,
-        Integer numberOfAdults,
-        Integer childrenBelow12,
-        LocalDate checkIn,
-        LocalDate checkOut,
-        String enquiryMessage
-) {}
+        String message
+) {
+}
