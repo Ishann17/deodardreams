@@ -13,6 +13,5 @@ public record PhysicalUnitResponseDto(
         UnitType unitType,
         Long parentUnitId,
         String name,
-        int capacity,
-        boolean isActive
+        Boolean isActive
 ) {}

@@ -10,5 +10,4 @@ import java.time.LocalDate;
 
 public record EnquiryUserResponseDto(
         String message
-) {
-}
+) {}

@@ -30,6 +30,7 @@ package com.deodardreams.dto.request;
  * directly, but the very next step in the same overall flow.
  */
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,7 +44,7 @@ public class CreateBookingRequestDto {
     @NotBlank
     @Pattern(regexp = "^[A-Za-z ]+$", message = "Name must contain letters only")
     String firstName;
-    @NotBlank
+
     @Pattern(regexp = "^[A-Za-z ]+$", message = "Name must contain letters only")
     String lastName;
 
@@ -52,15 +53,25 @@ public class CreateBookingRequestDto {
     String email;
 
     @Pattern(regexp = "^[6-9]\\d{9}$", message = "Phone number must be a valid 10-digit Indian mobile number")
+    @NotBlank
     String phoneNumber;
     String city;
     String state;
 
     @NotNull
+    @Positive
+    private Integer numberOfGuests;
+    @NotNull
+    @Positive
+    private Integer numberOfRooms;
+
+    @NotNull
     @FutureOrPresent
+    @JsonFormat(pattern = "dd-MM-yyyy")
     LocalDate checkIn;
     @NotNull
     @Future
+    @JsonFormat(pattern = "dd-MM-yyyy")
     LocalDate checkOut;
 
     // Which product is being booked — e.g. "THREE_BHK". Required to know what the guest wants.

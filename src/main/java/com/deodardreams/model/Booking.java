@@ -32,6 +32,8 @@ public class Booking extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_product_id", nullable = false)
     private RoomProduct roomProduct;
+    private Integer numberOfGuests;
+    private Integer numberOfRooms;
 
     private LocalDate checkIn;
     private LocalDate checkOut;

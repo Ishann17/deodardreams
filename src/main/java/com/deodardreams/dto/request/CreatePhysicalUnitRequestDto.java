@@ -1,14 +1,8 @@
 package com.deodardreams.dto.request;
-/**
- * Data for creating/updating a PhysicalUnit — admin-only operation
- * (room/unit setup is not guest-facing). Access control enforced at the
- * controller/security layer, not here — this DTO only validates shape.
- */
 
 import com.deodardreams.enums.UnitType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,10 +22,6 @@ public class CreatePhysicalUnitRequestDto {
     @NotBlank
     private String name;
 
-    @NotNull
-    @Positive
-    private Integer capacity;
-
     // No @NotNull needed — primitive boolean defaults to false if omitted, which is a safe default
-    private boolean isActive;
+    private Boolean isActive;
 }

@@ -26,10 +26,10 @@ public class RoomProduct extends BaseEntity{
     // Which product this is — drives fixed allocation rules in the booking logic
     @Enumerated(EnumType.STRING)
     private RoomCategory roomCategory;
-
     private String name;
-
     // Price guests pay. BigDecimal, not double — avoids floating-point rounding errors with money
     private BigDecimal basePrice;
-    private int maxOccupancy;
+    private BigDecimal extraGuestCharge;
+    private Integer maxOccupancy;
+    private Integer baseOccupancy;
 }

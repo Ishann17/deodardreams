@@ -1,11 +1,13 @@
 package com.deodardreams.service.mail;
 
+import com.deodardreams.dto.response.EnquiryAlertResponseDto;
 import io.micrometer.core.annotation.Timed;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -24,6 +26,8 @@ public class EmailServiceImpl implements EmailService{
 
     @Value("${deodar.dreams.contact-phone}")
     private String contactPhone;
+    @Value("${deodar.dreams.alert-mail}")
+    private String contactMail;
 
     public EmailServiceImpl(JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -96,6 +100,62 @@ public class EmailServiceImpl implements EmailService{
         } catch (IOException exception) {
             log.error("Failed to load enquiry acknowledgement email template", exception);
         }
+    }
+
+    @Override
+    @Async
+    public void sendEnquiryAlertToAdmin(EnquiryAlertResponseDto alertResponseDto) {
+        log.info("Sending enquiry alert to admin for enquiryId={}", alertResponseDto.getId());
+        try{
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setTo(contactMail);
+            mailMessage.setSubject("ENQUIRY ALERT! #" + alertResponseDto.getId());
+            mailMessage.setText(buildEnquiryAlertBody(alertResponseDto));
+
+            mailSender.send(mailMessage);
+            log.info("Enquiry alert email sent successfully for enquiryId={}", alertResponseDto.getId());
+        } catch (Exception e) {
+            log.error("Failed to send enquiry alert email for enquiryId={}", alertResponseDto.getId(), e);
+        }
+    }
+    // Builds the plain-text body from whatever fields are actually present.
+    // Optional fields (lastName, dates, message) are skipped entirely when empty,
+    // rather than showing up as blank/awkward lines in the email.
+    private String buildEnquiryAlertBody(EnquiryAlertResponseDto alertResponseDto) {
+        StringBuilder mailBody = new StringBuilder();
+        mailBody.append("New Enquiry Received.\n\n");
+        mailBody.append("Name : ").append(alertResponseDto.getFirstName());
+
+        if(alertResponseDto.getLastName() != null && !alertResponseDto.getLastName().trim().isEmpty()){
+            mailBody.append(" ").append(alertResponseDto.getLastName());
+        }
+        mailBody.append("\n");
+        mailBody.append("Email: ").append(alertResponseDto.getEmail()).append("\n");
+        mailBody.append("Mobile: ").append(alertResponseDto.getMobile()).append("\n");
+
+        if( alertResponseDto.getNumberOfRooms() != null && alertResponseDto.getNumberOfRooms() > 0){
+            mailBody.append("Number of Rooms: ").append(alertResponseDto.getNumberOfRooms()).append("\n");
+        }
+
+        if(alertResponseDto.getNumberOfAdults() != null && alertResponseDto.getNumberOfAdults() > 0){
+            mailBody.append("Number of Adults: ").append(alertResponseDto.getNumberOfAdults()).append("\n");
+        }
+
+        if(alertResponseDto.getChildrenBelow12() != null && alertResponseDto.getChildrenBelow12() > 0){
+            mailBody.append("Number of Children: ").append(alertResponseDto.getChildrenBelow12()).append("\n");
+        }
+
+        if (alertResponseDto.getCheckIn() != null) {
+            mailBody.append("Check-in: ").append(alertResponseDto.getCheckIn()).append("\n");
+        }
+        if (alertResponseDto.getCheckOut() != null) {
+            mailBody.append("Check-out: ").append(alertResponseDto.getCheckOut()).append("\n");
+        }
+        if (alertResponseDto.getEnquiryMessage() != null && !alertResponseDto.getEnquiryMessage().trim().isEmpty()) {
+            mailBody.append("Message: ").append(alertResponseDto.getEnquiryMessage()).append("\n");
+        }
+        log.info("Enquiry alert email mail body created for enquiryId={}", alertResponseDto.getId());
+        return mailBody.toString();
     }
 
     // Reads the HTML template off the classpath and substitutes the ${...}

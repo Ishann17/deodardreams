@@ -1,4 +1,4 @@
-package com.deodardreams.controller;
+package com.deodardreams.controller.enquiry;
 
 
 import com.deodardreams.dto.request.CreateEnquiryUserRequestDto;

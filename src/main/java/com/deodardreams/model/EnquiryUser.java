@@ -14,12 +14,17 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "enquiry_users")
 @Getter
 @Setter
-public class EnquiryUser extends BaseEntity{
+public class EnquiryUser {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String firstName;
@@ -40,6 +45,10 @@ public class EnquiryUser extends BaseEntity{
 
     private Integer childrenBelow12;
 
+    private String city;
+
+    private String state;
+
     // Optional because the guest may enquire without having fixed dates.
     private LocalDate checkIn;
 
@@ -49,5 +58,13 @@ public class EnquiryUser extends BaseEntity{
     // Additional requirement or question entered by the guest.
     @Column(length = 2000)
     private String enquiryMessage;
+
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 
 }

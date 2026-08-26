@@ -23,7 +23,6 @@ public class PhysicalUnit extends BaseEntity {
     private UnitType unitType;  // Type of physical space: individual room, hall, full 2BHK unit, or a bedroom within one
     private Long parentUnitId; // // Points to the parent 2BHK unit's id if this row is a bedroom within one; NULL for standalone rooms
     private String name;
-    private int capacity;
-    private boolean isActive;
+    private Boolean isActive;
 
 }

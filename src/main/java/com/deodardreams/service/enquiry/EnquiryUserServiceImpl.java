@@ -1,6 +1,7 @@
 package com.deodardreams.service.enquiry;
 
 import com.deodardreams.dto.request.CreateEnquiryUserRequestDto;
+import com.deodardreams.dto.response.EnquiryAlertResponseDto;
 import com.deodardreams.dto.response.EnquiryUserResponseDto;
 import com.deodardreams.mapper.EnquiryUserMapper;
 import com.deodardreams.model.EnquiryUser;
@@ -31,12 +32,18 @@ public class EnquiryUserServiceImpl implements EnquiryUserService{
 
         EnquiryUser enquiryUserEntity = enquiryUserRepository.save(enquiryUserMapper.toEnquiryUserEntity(request));
         log.info("Enquiry saved successfully with id={}", enquiryUserEntity.getId());
-
+        createEnquiryAlertToAdmin(enquiryUserEntity);
         emailService.sendEnquiryAcknowledgement(enquiryUserEntity.getEmail(),enquiryUserEntity.getFirstName());
 
         return new EnquiryUserResponseDto(
                 "Thank you, %s. We have received your enquiry and will get back to you shortly."
                         .formatted(enquiryUserEntity.getFirstName())
         );
+    }
+
+    @Override
+    public void createEnquiryAlertToAdmin(EnquiryUser enquiryUser) {
+        EnquiryAlertResponseDto enquiryAlertResponseDto = enquiryUserMapper.toEnquiryAlertResponseDto(enquiryUser);
+        emailService.sendEnquiryAlertToAdmin(enquiryAlertResponseDto);
     }
 }

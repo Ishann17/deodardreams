@@ -18,16 +18,11 @@ import lombok.Setter;
 @Setter
 public class Guest extends BaseEntity{
 
-    @Column(nullable = false)
     private String firstName;
-    @Column(nullable = false)
     private String lastName;
     private String city;
     private String state;
-    @Column(nullable = false)
-    @Email
     private String email;
-    @Column(unique = true, nullable = false)
     private String phoneNumber;
 
 }
