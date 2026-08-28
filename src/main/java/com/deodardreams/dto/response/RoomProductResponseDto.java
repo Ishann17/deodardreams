@@ -14,5 +14,7 @@ public record RoomProductResponseDto(
         RoomCategory roomCategory,
         String name,
         BigDecimal basePrice,
+        BigDecimal extraGuestCharge,
+        int baseOccupancy,
         int maxOccupancy
 ) {}

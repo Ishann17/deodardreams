@@ -71,6 +71,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
+    @ExceptionHandler(MaxOccupancyExceededException.class)
+    public ResponseEntity<?> handleMaxOccupancyExceeded(
+            MaxOccupancyExceededException exception,
+            HttpServletRequest request) {
+
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
+        errorResponse.put("error", "MAX_OCCUPANCY_EXCEEDED");
+        errorResponse.put("message", exception.getMessage());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
     //Fall back method for unexpected exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpected(Exception exception, HttpServletRequest request) {
