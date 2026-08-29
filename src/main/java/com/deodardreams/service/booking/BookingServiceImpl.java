@@ -15,9 +15,10 @@ import com.deodardreams.repository.BookingUnitRepository;
 import com.deodardreams.repository.PhysicalUnitRepository;
 import com.deodardreams.repository.RoomProductRepository;
 import com.deodardreams.service.guest.GuestService;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -47,6 +48,11 @@ public class BookingServiceImpl implements BookingService{
 
 
     @Override
+    // Ensures concurrent booking requests are processed safely so that two users
+    // cannot see and reserve the same available room at the same time.
+    // In critical booking operations, the database treats these transactions
+    // as if they are executed one after another.
+    @Transactional(isolation = Isolation.SERIALIZABLE) //SERIALIZABLE = prioritize correctness by making conflicting transactions behave as though they ran one after another.
     public BookingResponseDto createBooking(CreateBookingRequestDto requestDto) {
 
         log.info("Booking request received: roomProductCode={}, checkIn={}, checkOut={}, numberOfGuests={}",
@@ -65,10 +71,11 @@ public class BookingServiceImpl implements BookingService{
                         + roomCategory
                         + " is not available."));
 
+        // Calculating Total Allowed Capacity
         Integer numberOfGuests = requestDto.getNumberOfGuests();
         Integer numberOfRooms = requestDto.getNumberOfRooms();
 
-        //Determines the maximum number of guests that can be accommodated across all requested rooms.
+        // Determines the maximum number of guests that can be accommodated across all requested rooms.
         int maximumAllowedGuests = roomProduct.getMaxOccupancy() * numberOfRooms;
 
         if(numberOfGuests > maximumAllowedGuests){
@@ -129,7 +136,6 @@ public class BookingServiceImpl implements BookingService{
         if (roomCategory == RoomCategory.ONE_BHK) {
 
             allocatedPhysicalUnits = allocateOneBhkBedrooms(numberOfRooms, requestDto.getCheckIn(), requestDto.getCheckOut());
-
         } else {
 
             allocatedPhysicalUnits = getAvailablePhysicalUnits(roomCategory, requestDto.getCheckIn(), requestDto.getCheckOut())
@@ -261,37 +267,46 @@ public class BookingServiceImpl implements BookingService{
         return bookings.stream().map(bookingMapperResponse::toBookingResponseDto).toList();
     }
 
+    /**
+     * Distributes guests across requested rooms to calculate extra mattress charges accurately.
+     * It ensures guests are evenly packed up to base capacity before allocating extra beds.
+     * Example for 5 guests in 2 rooms (base: 2, max: 3) -> Returns [3, 2].
+     */
     private List<Integer> distributeGuestsAcrossSingleSuites(Integer numberOfGuests, Integer numberOfRooms, Integer baseOccupancy, Integer maxOccupancy){
 
-        // Stores how many guests will be assigned to each Single Suite.
+        // Stores the final head-count for each room (e.g., [3, 2] means 3 guests in room 1, 2 in room 2).
         List<Integer> guestsPerRoom = new ArrayList<>();
 
-        // Tracks guests who are still waiting to be assigned to a room.
+        // Tracks guests standing in the "virtual lobby" waiting for a bed.
         int remainingGuests = numberOfGuests;
 
-        // First fill each room up to its base occupancy.
-        for(int i=0; i<numberOfRooms && remainingGuests>0; i++){
+        // PHASE 1: Fill each requested room up to its standard base occupancy.
+        // The loop stops early if we run out of guests before filling all rooms.
+        for(int i = 0; i < numberOfRooms && remainingGuests > 0; i++){
 
+            // Pick whichever is smaller: the guests still waiting, or what the room can hold.
+            // (Prevents putting 2 guests in a room when only 1 guest is actually left).
             int guestForRoom = Math.min(remainingGuests, baseOccupancy);
             guestsPerRoom.add(guestForRoom);
             remainingGuests -= guestForRoom;
-
         }
 
-        // If guests are still unassigned, use the extra capacity of 1 guest per room.
-        // This represents the ₹500 extra-mattress option for a Single Suite.
+        // PHASE 2: If the lobby still has guests, start adding extra mattresses.
+        // We revisit the rooms we just filled and use their remaining capacity (maxOccupancy - currentGuests).
         for (int i = 0; i < guestsPerRoom.size() && remainingGuests > 0; i++) {
 
             int currentGuests = guestsPerRoom.get(i);
             int availableExtraCapacity = maxOccupancy - currentGuests;
 
+            // Assign extra guests up to the room's absolute maximum limit.
             int extraGuests = Math.min(remainingGuests, availableExtraCapacity);
 
+            // Update the room's headcount and remove them from the waiting list.
             guestsPerRoom.set(i, currentGuests + extraGuests);
             remainingGuests -= extraGuests;
         }
 
-
+        // The caller uses this list to count how many total guests exceeded baseOccupancy for billing.
         return guestsPerRoom;
     }
 
@@ -310,15 +325,22 @@ public class BookingServiceImpl implements BookingService{
 
         UnitType requiredUnitType = getRequiredUnitType(roomCategory);
         // Step 1: get every active unit of the right type — e.g. all bedrooms, if this is a 1 BHK request
-        List<PhysicalUnit> physicalUnits = physicalUnitRepository.findByUnitTypeAndIsActiveTrue(requiredUnitType);
-
+        List<PhysicalUnit> physicalUnits = physicalUnitRepository.findByUnitTypeAndIsActiveTrueForUpdate(requiredUnitType);
+        log.info(
+                "Inventory lock acquired: thread={}, threadId={}, roomCategory={}, unitType={}, unitsFound={}",
+                Thread.currentThread().getName(),
+                Thread.currentThread().threadId(),
+                roomCategory,
+                requiredUnitType,
+                physicalUnits.size()
+        );
         // Step 2: from those, keep only the ones with NO overlapping BookingUnit rows for these dates.
       return physicalUnits.stream().filter(physicalUnit -> bookingUnitRepository.findOverlappingBookings(physicalUnit.getId(), checkIn, checkOut, BookingStatus.CANCELLED).isEmpty()).toList();
     }
 
     private List<PhysicalUnit> getActiveTwoBhkUnits() {
         // Finds active 2 BHK parent units that can potentially provide bedrooms for 1 BHK bookings.
-        List<PhysicalUnit> twoBhkUnits = physicalUnitRepository.findByUnitTypeAndIsActiveTrue(UnitType.TWO_BHK_UNIT);
+        List<PhysicalUnit> twoBhkUnits = physicalUnitRepository.findByUnitTypeAndIsActiveTrueForUpdate(UnitType.TWO_BHK_UNIT);
         log.info("Found {} active 2 BHK unit(s) for 1 BHK allocation", twoBhkUnits.size());
         return twoBhkUnits;
     }

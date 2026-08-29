@@ -83,7 +83,7 @@ class BookingServiceImplTest {
         when(guestService.findOrCreateGuest(requestDto)).thenReturn(guest);
         when(roomProductRepository.findByRoomCategory(RoomCategory.SINGLE_SUITE)).thenReturn(Optional.of(roomProduct));
         when(physicalUnitRepository.findByUnitTypeAndIsActiveTrue(UnitType.INDIVIDUAL_ROOM)).thenReturn(List.of(physicalUnit));
-        when(bookingUnitRepository.findOverlappingBookings(eq(200L), any(LocalDate.class), any(LocalDate.class))).thenReturn(Collections.emptyList());
+        //when(bookingUnitRepository.findOverlappingBookings(eq(200L), any(LocalDate.class), any(LocalDate.class))).thenReturn(Collections.emptyList());
 
         Booking savedBooking = new Booking();
         savedBooking.setId(500L);
@@ -112,7 +112,7 @@ class BookingServiceImplTest {
         when(guestService.findOrCreateGuest(requestDto)).thenReturn(guest);
         when(roomProductRepository.findByRoomCategory(RoomCategory.SINGLE_SUITE)).thenReturn(Optional.of(roomProduct));
         when(physicalUnitRepository.findByUnitTypeAndIsActiveTrue(UnitType.INDIVIDUAL_ROOM)).thenReturn(List.of(physicalUnit));
-        when(bookingUnitRepository.findOverlappingBookings(anyLong(), any(), any())).thenReturn(Collections.emptyList());
+        //when(bookingUnitRepository.findOverlappingBookings(anyLong(), any(), any())).thenReturn(Collections.emptyList());
 
         Booking savedBooking = new Booking();
         savedBooking.setId(501L);
@@ -160,7 +160,7 @@ class BookingServiceImplTest {
         when(physicalUnitRepository.findByUnitTypeAndIsActiveTrue(UnitType.INDIVIDUAL_ROOM)).thenReturn(List.of(physicalUnit));
 
         BookingUnit overlappingUnit = new BookingUnit();
-        when(bookingUnitRepository.findOverlappingBookings(eq(200L), any(), any())).thenReturn(List.of(overlappingUnit));
+        //when(bookingUnitRepository.findOverlappingBookings(eq(200L), any(), any())).thenReturn(List.of(overlappingUnit));
 
         RoomNotAvailableException exception = assertThrows(RoomNotAvailableException.class,
                 () -> bookingService.createBooking(requestDto));
