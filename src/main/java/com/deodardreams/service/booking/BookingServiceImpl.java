@@ -8,6 +8,7 @@ import com.deodardreams.enums.UnitType;
 import com.deodardreams.exception.MaxOccupancyExceededException;
 import com.deodardreams.exception.ResourceNotFoundException;
 import com.deodardreams.exception.RoomNotAvailableException;
+import com.deodardreams.mapper.BookingMapper;
 import com.deodardreams.model.*;
 import com.deodardreams.repository.BookingRepository;
 import com.deodardreams.repository.BookingUnitRepository;
@@ -22,7 +23,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -34,13 +34,15 @@ public class BookingServiceImpl implements BookingService{
     private final BookingUnitRepository bookingUnitRepository;
     private final GuestService guestService;
     private final PhysicalUnitRepository physicalUnitRepository;
+    private final BookingMapper bookingMapperResponse;
 
-    public BookingServiceImpl(RoomProductRepository roomProductRepository, BookingRepository bookingRepository, BookingUnitRepository bookingUnitRepository, GuestService guestService, PhysicalUnitRepository physicalUnitRepository) {
+    public BookingServiceImpl(RoomProductRepository roomProductRepository, BookingRepository bookingRepository, BookingUnitRepository bookingUnitRepository, GuestService guestService, PhysicalUnitRepository physicalUnitRepository, BookingMapper bookingMapperResponse) {
         this.roomProductRepository = roomProductRepository;
         this.bookingRepository = bookingRepository;
         this.bookingUnitRepository = bookingUnitRepository;
         this.guestService = guestService;
         this.physicalUnitRepository = physicalUnitRepository;
+        this.bookingMapperResponse = bookingMapperResponse;
     }
 
 
@@ -212,15 +214,7 @@ public class BookingServiceImpl implements BookingService{
                 "Booking flow completed successfully for bookingId={}",
                 savedBooking.getId()
         );
-        return new BookingResponseDto(
-                savedBooking.getId(),
-                guest.getFirstName(),
-                roomProduct.getName(),
-                savedBooking.getCheckIn(),
-                savedBooking.getCheckOut(),
-                savedBooking.getTotalAmount(),
-                savedBooking.getStatus().toString()
-        );
+        return bookingMapperResponse.toBookingResponseDto(savedBooking);
     }
 
     @Override
@@ -232,15 +226,7 @@ public class BookingServiceImpl implements BookingService{
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
             log.info("Booking with id={} is already cancelled", bookingId);
-            return new BookingResponseDto(
-                    booking.getId(),
-                    booking.getGuest().getFirstName(),
-                    booking.getRoomProduct().getName(),
-                    booking.getCheckIn(),
-                    booking.getCheckOut(),
-                    booking.getTotalAmount(),
-                    booking.getStatus().toString()
-            );
+            return bookingMapperResponse.toBookingResponseDto(booking);
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
@@ -248,15 +234,7 @@ public class BookingServiceImpl implements BookingService{
 
         log.info("Booking with id={} cancelled successfully", bookingId);
 
-        return new BookingResponseDto(
-                updatedBooking.getId(),
-                updatedBooking.getGuest().getFirstName(),
-                updatedBooking.getRoomProduct().getName(),
-                updatedBooking.getCheckIn(),
-                updatedBooking.getCheckOut(),
-                updatedBooking.getTotalAmount(),
-                updatedBooking.getStatus().toString()
-        );
+        return bookingMapperResponse.toBookingResponseDto(updatedBooking);
     }
 
     @Override
@@ -264,17 +242,23 @@ public class BookingServiceImpl implements BookingService{
         log.info("Fetching all bookings");
         List<Booking> bookings = bookingRepository.findAll();
         log.info("Fetched {} booking(s)", bookings.size());
-        return bookings.stream()
-                .map(b -> new BookingResponseDto(
-                        b.getId(),
-                        b.getGuest().getFirstName(),
-                        b.getRoomProduct().getName(),
-                        b.getCheckIn(),
-                        b.getCheckOut(),
-                        b.getTotalAmount(),
-                        b.getStatus().toString()
-                ))
-                .toList();
+        return bookings.stream().map(bookingMapperResponse::toBookingResponseDto).toList();
+    }
+
+    @Override
+    public List<BookingResponseDto> getAllCancelledBookings() {
+        log.info("Fetching all cancelled bookings");
+        List<Booking> bookings = bookingRepository.findByStatus(BookingStatus.CANCELLED);
+        log.info("Fetched {} cancelled booking(s)", bookings.size());
+        return bookings.stream().map(bookingMapperResponse::toBookingResponseDto).toList();
+    }
+
+    @Override
+    public List<BookingResponseDto> getAllConfirmedBooking() {
+        log.info("Fetching all pending/confirmed bookings");
+        List<Booking> bookings = bookingRepository.findByStatusIn(List.of(BookingStatus.PENDING, BookingStatus.CONFIRMED));
+        log.info("Fetched {} pending/confirmed booking(s)", bookings.size());
+        return bookings.stream().map(bookingMapperResponse::toBookingResponseDto).toList();
     }
 
     private List<Integer> distributeGuestsAcrossSingleSuites(Integer numberOfGuests, Integer numberOfRooms, Integer baseOccupancy, Integer maxOccupancy){

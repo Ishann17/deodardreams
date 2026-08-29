@@ -24,6 +24,21 @@ public class BookingController {
     public ResponseEntity<List<BookingResponseDto>> getAllBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
+    @GetMapping("/cancelled")
+    public ResponseEntity<List<BookingResponseDto>> getAllCancelledBookings() {
+
+        List<BookingResponseDto> cancelledBookings = bookingService.getAllCancelledBookings();
+
+        return ResponseEntity.ok(cancelledBookings);
+    }
+
+    @GetMapping("/confirmed")
+    public ResponseEntity<List<BookingResponseDto>> getAllConfirmedBookings() {
+
+        List<BookingResponseDto> confirmedBookings = bookingService.getAllConfirmedBooking();
+
+        return ResponseEntity.ok(confirmedBookings);
+    }
 
     @PostMapping
     public ResponseEntity<BookingResponseDto> createBooking(@Valid @RequestBody CreateBookingRequestDto request) {

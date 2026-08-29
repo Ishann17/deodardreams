@@ -6,14 +6,16 @@ package com.deodardreams.dto.response;
  * never meant to be modified after it's built.
  */
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record BookingResponseDto(Long bookingId,
                                  String guestName,
                                  String roomProductName,
-                                 LocalDate checkIn,
-                                 LocalDate checkOut,
+                                 @JsonFormat(pattern = "dd-MM-yyyy") LocalDate checkIn,
+                                 @JsonFormat(pattern = "dd-MM-yyyy") LocalDate checkOut,
                                  BigDecimal totalAmount,
                                  String status)
 {}
