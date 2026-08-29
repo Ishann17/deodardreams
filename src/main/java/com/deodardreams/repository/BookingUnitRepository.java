@@ -1,5 +1,6 @@
 package com.deodardreams.repository;
 
+import com.deodardreams.enums.BookingStatus;
 import com.deodardreams.model.BookingUnit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,10 +17,12 @@ public interface BookingUnitRepository extends JpaRepository<BookingUnit, Long> 
      * before the other begins — this query expresses exactly that condition.
      */
     @Query("SELECT bu FROM BookingUnit bu WHERE bu.physicalUnit.id = :physicalUnitId " +
-            "AND bu.checkIn < :requestedCheckOut AND bu.checkOut > :requestedCheckIn")
+            "AND bu.checkIn < :requestedCheckOut AND bu.checkOut > :requestedCheckIn " +
+            "AND bu.booking.status <> :excludedStatus")
     List<BookingUnit> findOverlappingBookings(
             @Param("physicalUnitId") Long physicalUnitId,
             @Param("requestedCheckIn") LocalDate requestedCheckIn,
-            @Param("requestedCheckOut") LocalDate requestedCheckOut
+            @Param("requestedCheckOut") LocalDate requestedCheckOut,
+            @Param("excludedStatus") BookingStatus excludedStatus
     );
 }
