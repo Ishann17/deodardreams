@@ -6,6 +6,7 @@ import com.deodardreams.service.roomProduct.RoomProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class RoomProductController {
      * Returns all room products available in the system.
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<RoomProductResponseDto>> getAllRoomProducts() {
 
         log.info("Received request to fetch all room products");
@@ -41,6 +43,7 @@ public class RoomProductController {
      * Returns HTTP 201 when the product is successfully created.
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<RoomProductResponseDto> createRoomProduct(
             @RequestBody CreateRoomProductRequestDto requestDto) {
 
@@ -62,6 +65,7 @@ public class RoomProductController {
      * depending on the mapper's null-value update configuration.
      */
     @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<RoomProductResponseDto> updateRoomProduct(
             @PathVariable Long id,
             @RequestBody CreateRoomProductRequestDto requestDto) {

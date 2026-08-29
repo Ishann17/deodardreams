@@ -6,6 +6,7 @@ import com.deodardreams.service.booking.BookingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,10 +22,12 @@ public class BookingController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<BookingResponseDto>> getAllBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
     @GetMapping("/cancelled")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<BookingResponseDto>> getAllCancelledBookings() {
 
         List<BookingResponseDto> cancelledBookings = bookingService.getAllCancelledBookings();
@@ -33,6 +36,7 @@ public class BookingController {
     }
 
     @GetMapping("/confirmed")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<BookingResponseDto>> getAllConfirmedBookings() {
 
         List<BookingResponseDto> confirmedBookings = bookingService.getAllConfirmedBooking();
@@ -47,6 +51,7 @@ public class BookingController {
     }
 
     @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'EMPLOYEE')")
     public ResponseEntity<BookingResponseDto> cancelBooking(@PathVariable Long id) {
         return ResponseEntity.ok(bookingService.cancelBooking(id));
     }

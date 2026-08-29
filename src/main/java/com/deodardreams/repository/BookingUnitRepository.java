@@ -18,7 +18,6 @@ public interface BookingUnitRepository extends JpaRepository<BookingUnit, Long> 
      * for a given physical unit. Two date ranges overlap unless one entirely ends
      * before the other begins — this query expresses exactly that condition.
      */
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT bu FROM BookingUnit bu WHERE bu.physicalUnit.id = :physicalUnitId " +
             "AND bu.checkIn < :requestedCheckOut AND bu.checkOut > :requestedCheckIn " +
             "AND bu.booking.status <> :excludedStatus")

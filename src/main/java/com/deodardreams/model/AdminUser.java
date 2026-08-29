@@ -37,4 +37,8 @@ public class AdminUser extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
+
+    // Controls whether this admin is currently allowed to access the application.
+    @Column(nullable = false)
+    private Boolean isActive = true;
 }

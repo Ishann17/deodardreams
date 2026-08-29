@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class PhysicalUnitController {
      * into the complete physical inventory.
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<PhysicalUnitResponseDto>> getAllPhysicalUnits() {
 
         log.info("Received request to fetch all physical units");
@@ -46,6 +48,7 @@ public class PhysicalUnitController {
      * Returns HTTP 201 when the unit is successfully created.
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<PhysicalUnitResponseDto> createPhysicalUnit(@Valid @RequestBody CreatePhysicalUnitRequestDto requestDto) {
 
         log.info("Received request to create a physical unit");
@@ -64,6 +67,7 @@ public class PhysicalUnitController {
      * Updates an existing physical unit using its database identifier.
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<PhysicalUnitResponseDto> updatePhysicalUnit(@PathVariable Long id, @RequestBody UpdatePhysicalUnitRequestDto requestDto) {
 
         log.info("Received request to update physical unit with id={}", id);
@@ -82,6 +86,7 @@ public class PhysicalUnitController {
      * remains intact.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     public ResponseEntity<?> deactivatePhysicalUnit(@PathVariable Long id) {
 
         log.info("Received request to deactivate physical unit with id={}", id);
