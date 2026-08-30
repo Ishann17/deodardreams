@@ -7,6 +7,8 @@ package com.deodardreams.dto.request;
  */
 
 import com.deodardreams.enums.UserRole;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,14 +16,20 @@ import lombok.Setter;
 @Setter
 public class CreateAdminUserRequestDto {
 
+    @NotNull
     private String name;
 
+    @NotNull
+    @Email
     private String email;
 
+    @NotNull
     private String phoneNumber;
 
+    @NotNull
     private String password;
 
+    @NotNull
     private UserRole role;
 
     // New admin users are active by default.

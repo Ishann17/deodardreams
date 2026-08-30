@@ -2,8 +2,10 @@ package com.deodardreams.exception;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,11 +15,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<?> handleResourceNotFound(ResourceNotFoundException exception, HttpServletRequest request){
+        log.warn("Resource not found on path {}: {}", request.getRequestURI(), exception.getMessage());
 
         Map<String, Object> errorResponse = new LinkedHashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
@@ -30,10 +34,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationErrors(
-            MethodArgumentNotValidException exception,
-            HttpServletRequest request) {
-
+    public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException exception, HttpServletRequest request) {
+        log.warn("Validation failed on path {}: {}", request.getRequestURI(), exception.getMessage());
         Map<String, String> fieldErrors = new LinkedHashMap<>();
 
         exception.getBindingResult()
@@ -60,7 +62,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RoomNotAvailableException.class)
     public ResponseEntity<?> handleRoomNotAvailable(RoomNotAvailableException exception, HttpServletRequest request) {
-
+        log.warn("Room not available on path {}: {}", request.getRequestURI(), exception.getMessage());
         Map<String, Object> errorResponse = new LinkedHashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("status", HttpStatus.CONFLICT.value());
@@ -72,10 +74,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MaxOccupancyExceededException.class)
-    public ResponseEntity<?> handleMaxOccupancyExceeded(
-            MaxOccupancyExceededException exception,
-            HttpServletRequest request) {
-
+    public ResponseEntity<?> handleMaxOccupancyExceeded(MaxOccupancyExceededException exception, HttpServletRequest request) {
+        log.warn("Maximum Occupancy Exceeded {}: {}", request.getRequestURI(), exception.getMessage());
         Map<String, Object> errorResponse = new LinkedHashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
@@ -86,9 +86,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDenied(AccessDeniedException exception, HttpServletRequest request){
+        log.warn("Access denied on path {}: {}", request.getRequestURI(), exception.getMessage());
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.FORBIDDEN.value());
+        errorResponse.put("error", "ACCESS_DENIED");
+        errorResponse.put("message", "You do not have permission to perform this action.");
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
     //Fall back method for unexpected exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpected(Exception exception, HttpServletRequest request) {
+        log.error("Unhandled exception on path {}: ", request.getRequestURI(), exception);
         Map<String, Object> errorResponse = new LinkedHashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());
         errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());

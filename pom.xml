@@ -149,12 +149,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- JWT: public API our code writes against directly (building/parsing tokens) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
             <version>0.12.6</version>
         </dependency>
 
+        <!-- JWT: actual signing/verification engine behind jjwt-api; only needed at runtime, never referenced directly in our code -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
@@ -162,6 +164,7 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- JWT: converts token payload JSON to/from Java objects using Jackson, same library our app already uses for REST bodies -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>

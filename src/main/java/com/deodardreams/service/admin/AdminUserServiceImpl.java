@@ -68,8 +68,11 @@ public class AdminUserServiceImpl implements AdminUserService{
         AdminUser adminUser = adminUserRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Admin with id" + id + " is not available"));
 
         adminUserMapper.updateAdminUserEntity(requestDto, adminUser);
-        String updatedPassword = passwordEncoder.encode(requestDto.getPassword());
-        adminUser.setPasswordHash(updatedPassword);
+
+        if (requestDto.getPassword() != null && !requestDto.getPassword().isBlank()) {
+            adminUser.setPasswordHash(passwordEncoder.encode(requestDto.getPassword()));
+        }
+
         AdminUser updatedAdmin = adminUserRepository.save(adminUser);
         log.info("Admin user updated successfully with id={}", id);
 
