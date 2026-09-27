@@ -24,16 +24,18 @@ public class Payment extends BaseEntity {
     private Booking booking;
 
     // Set when the Razorpay order is first created, before the guest has paid.
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String razorpayOrderId;
 
     // Only exists AFTER a successful payment — must be nullable, unlike razorpayOrderId.
     private String razorpayPaymentId;
 
     // What's owed. BigDecimal — same reasoning as Booking.totalAmount and RoomProduct.basePrice.
+    @Column(nullable = false)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentStatus paymentStatus;
 
 }

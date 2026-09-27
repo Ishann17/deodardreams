@@ -99,6 +99,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<?> handlePaymentException(PaymentException exception, HttpServletRequest request){
+        log.error("Payment operation failed on path {}: {}", request.getRequestURI(), exception.getMessage(), exception);
+
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.BAD_GATEWAY.value());
+        errorResponse.put("error", "PAYMENT_SERVICE_ERROR");
+        errorResponse.put("message", "Unable to process payment at this time");
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
+    }
+
     //Fall back method for unexpected exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpected(Exception exception, HttpServletRequest request) {
