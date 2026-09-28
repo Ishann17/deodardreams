@@ -16,5 +16,8 @@ public interface PaymentService {
     // Marks a payment as failed.
     void markPaymentAsFailed(String razorpayOrderId);
 
+    // Verifies that the webhook request was genuinely sent by Razorpay.
+    boolean verifyWebhookSignature(String rawBody, String signature);
+
 
 }

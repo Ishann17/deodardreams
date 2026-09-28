@@ -12,13 +12,18 @@ import com.deodardreams.repository.PaymentRepository;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.razorpay.Utils;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
 @Service
 public class PaymentServiceImpl implements PaymentService{
+
+    @Value("${razorpay.webhook.secret}")
+    private String webhookSecret;
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
@@ -83,6 +88,17 @@ public class PaymentServiceImpl implements PaymentService{
     public void markPaymentAsFailed(String razorpayOrderId) {
 
     }
+
+    @Override
+    public boolean verifyWebhookSignature(String rawBody, String signature) {
+
+        try{
+            return Utils.verifyWebhookSignature(rawBody, signature, webhookSecret);
+        }catch (RazorpayException e){
+            throw new PaymentException("Failed to verify Razorpay webhook signature", e);
+        }
+    }
+
     // Converts the booking amount from rupees to paise, as required by Razorpay.
     private long convertToPaise(BigDecimal amount) {
         // longValueExact() prevents silent loss of precision. If the BigDecimal cannot be represented exactly as a long, Java throws an exception instead of silently giving you an incorrect amount.
