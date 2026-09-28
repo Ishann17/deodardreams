@@ -27,7 +27,6 @@ public class MySqlTestContainerConfig {
     @Bean
     @ServiceConnection // Tells Spring Boot to automatically use this container's connection details for the test application's DataSource.
     MySQLContainer mySQLContainer(){
-
         MySQLContainer mySQLContainer = new MySQLContainer("mysql:8.4");
         mySQLContainer.start();
         return mySQLContainer;
