@@ -10,5 +10,6 @@ public interface PaymentResponseMapper {
 
     // Payment does not contain currency, so we explicitly set it to INR here.
     @Mapping(target = "currency", constant = "INR")
+    @Mapping(target = "paymentId", source = "id")
     PaymentResponseDto toPaymentResponseDto(Payment payment);
 }

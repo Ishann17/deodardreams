@@ -160,6 +160,7 @@ public class SecurityConfig {
                 // Customer-facing APIs — no admin authentication required.
                 .requestMatchers("/api/bookings/**", "/api/enquiries/**", "/api/auth/**").permitAll()
                 .requestMatchers("/api/payments/webhook").permitAll()
+                .requestMatchers("/api/payments/orders").permitAll()
 
                 .requestMatchers("/api/admin-users/**")
                 .hasAnyRole("SUPER_ADMIN", "ADMIN")

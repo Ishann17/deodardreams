@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "payments")
@@ -23,13 +25,6 @@ public class Payment extends BaseEntity {
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
-    // Set when the Razorpay order is first created, before the guest has paid.
-    @Column(nullable = false, unique = true)
-    private String razorpayOrderId;
-
-    // Only exists AFTER a successful payment — must be nullable, unlike razorpayOrderId.
-    private String razorpayPaymentId;
-
     // What's owed. BigDecimal — same reasoning as Booking.totalAmount and RoomProduct.basePrice.
     @Column(nullable = false)
     private BigDecimal amount;
@@ -37,5 +32,23 @@ public class Payment extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus paymentStatus;
+
+    /**
+     * Stores all payment attempts associated with this payment.
+     *
+     * A single booking/payment can have multiple payment attempts because a user
+     * may fail a payment and try again. Keeping these attempts as separate records
+     * allows us to preserve the complete payment history instead of overwriting
+     * previous attempts.
+     *
+     * Payment owns the relationship conceptually, while PaymentAttempt stores the
+     * actual foreign key through its "payment" field.
+     *
+     * LAZY loading is used so payment attempts are fetched from the database only
+     * when they are actually needed.
+     */
+
+    @OneToMany(mappedBy = "payment", fetch = FetchType.LAZY)
+    private List<PaymentAttempt> paymentAttempts = new ArrayList<>();
 
 }

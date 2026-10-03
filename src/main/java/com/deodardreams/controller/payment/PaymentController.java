@@ -1,10 +1,15 @@
 package com.deodardreams.controller.payment;
 
+import com.deodardreams.dto.response.PaymentCheckoutResponseDto;
+import com.deodardreams.dto.response.PaymentResponseDto;
 import com.deodardreams.service.payment.PaymentService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -22,13 +27,16 @@ public class PaymentController {
      */
     @PostMapping("/webhook")
     public ResponseEntity<?> handleWebhook(@RequestBody String rawBody,
-            @RequestHeader("X-Razorpay-Signature") String signature,
-            @RequestHeader(value = "x-razorpay-event-id", required = false) String eventId) {
+            @RequestHeader(value = "X-Razorpay-Signature", required = true) String signature,
+            @RequestHeader(value = "x-razorpay-event-id", required = true) String eventId) throws JsonProcessingException {
 
-        boolean signatureValid = paymentService.verifyWebhookSignature(rawBody, signature);
-        if(!signatureValid){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        paymentService.processRazorpayWebhook(rawBody, eventId, signature);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/orders")
+    public ResponseEntity<?> createPaymentOrder(@RequestParam Long bookingId) {
+        PaymentCheckoutResponseDto response = paymentService.createPaymentOrder(bookingId);
+        return ResponseEntity.ok(response);
     }
 }

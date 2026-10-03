@@ -113,9 +113,113 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
     }
 
+    @ExceptionHandler(PaymentAlreadyCompletedException.class)
+    public ResponseEntity<?> handlePaymentAlreadyCompletedException(PaymentAlreadyCompletedException exception, HttpServletRequest request){
+        log.warn("Payment already completed on path {}: {}", request.getRequestURI(), exception.getMessage());
+
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.CONFLICT.value());
+        errorResponse.put("error", "PAYMENT_ALREADY_COMPLETED");
+        errorResponse.put("message", exception.getMessage());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(RazorpayOrderNotFoundException.class)
+    public ResponseEntity<?> handleRazorpayOrderNotFoundException(RazorpayOrderNotFoundException exception, HttpServletRequest request){
+        log.warn("Razorpay Order not found on path {}: {}", request.getRequestURI(), exception.getMessage());
+
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.NOT_FOUND.value());
+        errorResponse.put("error", "RAZORPAY_ORDER_NOT_FOUND");
+        errorResponse.put("message", exception.getMessage());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(PaymentAmountMismatchException.class)
+    public ResponseEntity<?> handlePaymentAmountMismatchException(PaymentAmountMismatchException exception, HttpServletRequest request){
+        log.warn("Payment amount mismatch on path {}: {}", request.getRequestURI(), exception.getMessage());
+
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.UNPROCESSABLE_CONTENT.value());
+        errorResponse.put("error", "PAYMENT_AMOUNT_MISMATCH_ERROR");
+        errorResponse.put("message", exception.getMessage());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(errorResponse);
+    }
+
+    @ExceptionHandler(RazorpayCurrencyMismatchException.class)
+    public ResponseEntity<?> handleRazorpayCurrencyMismatchException(
+            RazorpayCurrencyMismatchException exception,
+            HttpServletRequest request) {
+
+        log.warn("Payment currency mismatch on path {}: {}", request.getRequestURI(), exception.getMessage());
+
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.UNPROCESSABLE_CONTENT.value());
+        errorResponse.put("error", "PAYMENT_CURRENCY_MISMATCH_ERROR");
+        errorResponse.put("message", exception.getMessage());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(errorResponse);
+    }
+
+    @ExceptionHandler(RazorpayPaymentOrderMismatchException.class)
+    public ResponseEntity<?> handleRazorpayPaymentOrderMismatchException(RazorpayPaymentOrderMismatchException exception, HttpServletRequest request) {
+
+        log.warn("Razorpay payment/order mismatch on path {}: {}", request.getRequestURI(), exception.getMessage());
+
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.UNPROCESSABLE_CONTENT.value());
+        errorResponse.put("error", "RAZORPAY_PAYMENT_ORDER_MISMATCH_ERROR");
+        errorResponse.put("message", exception.getMessage());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(errorResponse);
+    }
+
+    @ExceptionHandler(RazorpayPaymentNotCapturedException.class)
+    public ResponseEntity<?> handleRazorpayPaymentNotCapturedException(RazorpayPaymentNotCapturedException exception, HttpServletRequest request) {
+
+        log.warn("Razorpay payment not captured on path {}: {}", request.getRequestURI(), exception.getMessage());
+
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.UNPROCESSABLE_CONTENT.value());
+        errorResponse.put("error", "RAZORPAY_PAYMENT_NOT_CAPTURED_ERROR");
+        errorResponse.put("message", exception.getMessage());
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(errorResponse);
+    }
+
+    @ExceptionHandler(RazorpayWebhookSignatureInvalidException.class)
+    public ResponseEntity<?> handleRazorpayWebhookSignatureInvalidException(RazorpayWebhookSignatureInvalidException exception, HttpServletRequest request) {
+
+        log.warn("Invalid Razorpay webhook signature on path {}: {}", request.getRequestURI(),exception.getMessage());
+
+        Map<String, Object> errorResponse = new LinkedHashMap<>();
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
+        errorResponse.put("error", "INVALID_RAZORPAY_WEBHOOK_SIGNATURE");
+        errorResponse.put("message", "Invalid Razorpay webhook signature");
+        errorResponse.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
     //Fall back method for unexpected exceptions
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleUnexpected(Exception exception, HttpServletRequest request) {
+    public ResponseEntity<?> handleUnexpectedException(Exception exception, HttpServletRequest request) {
         log.error("Unhandled exception on path {}: ", request.getRequestURI(), exception);
         Map<String, Object> errorResponse = new LinkedHashMap<>();
         errorResponse.put("timestamp", LocalDateTime.now());

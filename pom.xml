@@ -242,6 +242,11 @@
 									<groupId>org.projectlombok</groupId>
 									<artifactId>lombok</artifactId>
 								</path>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok-mapstruct-binding</artifactId>
+                                    <version>0.2.0</version>
+                                </path>
                                 <!-- We need to add Mapstruct here as well, otherwise the application will fail to start-->
                                 <path>
                                     <groupId>org.mapstruct</groupId>
