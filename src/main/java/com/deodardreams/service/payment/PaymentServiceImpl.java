@@ -15,9 +15,6 @@ import com.deodardreams.repository.BookingRepository;
 import com.deodardreams.repository.PaymentAttemptRepository;
 import com.deodardreams.repository.PaymentRepository;
 import com.deodardreams.repository.RazorpayWebhookEventRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -28,6 +25,10 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+// Spring Boot 4 uses Jackson 3, whose package is "tools.jackson" (old Jackson 2 was "com.fasterxml.jackson").
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -308,7 +309,7 @@ public class PaymentServiceImpl implements PaymentService{
                     break;
             }
 
-        }catch (JsonProcessingException e){
+        }catch (JacksonException e){
             log.error("Failed to parse Razorpay webhook payload for eventId: {}", eventId, e);
             throw new PaymentException("Failed to parse Razorpay webhook payload", e);
         } catch (RazorpayException e) {

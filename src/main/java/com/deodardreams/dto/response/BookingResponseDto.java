@@ -14,6 +14,7 @@ import java.time.LocalDate;
 public record BookingResponseDto(Long bookingId,
                                  String guestName,
                                  String roomProductName,
+                                 Long numberOfNights,
                                  @JsonFormat(pattern = "dd-MM-yyyy") LocalDate checkIn,
                                  @JsonFormat(pattern = "dd-MM-yyyy") LocalDate checkOut,
                                  BigDecimal totalAmount,

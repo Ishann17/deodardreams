@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +62,10 @@ public class BookingServiceImpl implements BookingService{
         // Find an existing guest by phone number or create a new guest when this is their first booking.
         Guest guest = guestService.findOrCreateGuest(requestDto);
         log.info("Resolved guest id={} for booking request", guest.getId());
+
+        // Number of nights the guest is going to stay to get the final amount
+        long numberOfNights = calculateNumberOfNights(requestDto.getCheckIn(), requestDto.getCheckOut());
+        log.info("Number of nights calculated : {}", numberOfNights);
 
         // Converts the client-provided room product code into the application's RoomCategory enum.
         RoomCategory roomCategory = RoomCategory.valueOf(requestDto.getRoomProductCode());
@@ -116,6 +121,8 @@ public class BookingServiceImpl implements BookingService{
                     extraCharge,
                     totalAmount);
         }
+
+        totalAmount = totalAmount.multiply(BigDecimal.valueOf(numberOfNights));
 
         log.info(
                 "Booking amount calculated: category={}, rooms={}, totalAmount={}",
@@ -210,16 +217,10 @@ public class BookingServiceImpl implements BookingService{
             bookingUnitRepository.save(bookingUnit);
 
             log.info(
-                    "BookingUnit created: bookingId={}, physicalUnitId={}",
-                    savedBooking.getId(),
-                    physicalUnit.getId()
-            );
+                    "BookingUnit created: bookingId={}, physicalUnitId={}", savedBooking.getId(),  physicalUnit.getId());
         }
 
-        log.info(
-                "Booking flow completed successfully for bookingId={}",
-                savedBooking.getId()
-        );
+        log.info("Booking flow completed successfully for bookingId={}", savedBooking.getId());
         return bookingMapperResponse.toBookingResponseDto(savedBooking);
     }
 
@@ -335,7 +336,7 @@ public class BookingServiceImpl implements BookingService{
                 physicalUnits.size()
         );
         // Step 2: from those, keep only the ones with NO overlapping BookingUnit rows for these dates.
-      return physicalUnits.stream().filter(physicalUnit -> bookingUnitRepository.findOverlappingBookings(physicalUnit.getId(), checkIn, checkOut, BookingStatus.CANCELLED).isEmpty()).toList();
+      return physicalUnits.stream().filter(physicalUnit -> bookingUnitRepository.findOverlappingBookings(physicalUnit.getId(), checkIn, checkOut, BookingStatus.freedUpRoomStatuses()).isEmpty()).toList();
     }
 
     private List<PhysicalUnit> getActiveTwoBhkUnits() {
@@ -356,7 +357,7 @@ public class BookingServiceImpl implements BookingService{
                                         bedroom.getId(),
                                         checkIn,
                                         checkOut,
-                                        BookingStatus.CANCELLED
+                                        BookingStatus.freedUpRoomStatuses()
                                 ).isEmpty()).toList();
     }
 
@@ -390,5 +391,19 @@ public class BookingServiceImpl implements BookingService{
         }
 
         return List.of();
+    }
+
+    /**
+     * Works out how many NIGHTS the guest is staying.
+     *
+     * Nights = check-out date minus check-in date. The check-out day is not charged,
+     * because the guest leaves that morning.
+     *   Example: check-in 20 Oct, check-out 23 Oct = 3 nights (the nights of the 20th, 21st and 22nd).
+     *
+     * Assumes check-out is AFTER check-in. That rule is validated separately, so
+     * this method never receives a zero or negative stay.
+     */
+    private long calculateNumberOfNights(LocalDate checkIn, LocalDate checkOut) {
+        return ChronoUnit.DAYS.between(checkIn, checkOut);
     }
 }
