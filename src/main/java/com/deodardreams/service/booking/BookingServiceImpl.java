@@ -395,11 +395,6 @@ public class BookingServiceImpl implements BookingService{
 
     /**
      * Works out how many NIGHTS the guest is staying.
-     *
-     * Nights = check-out date minus check-in date. The check-out day is not charged,
-     * because the guest leaves that morning.
-     *   Example: check-in 20 Oct, check-out 23 Oct = 3 nights (the nights of the 20th, 21st and 22nd).
-     *
      * Assumes check-out is AFTER check-in. That rule is validated separately, so
      * this method never receives a zero or negative stay.
      */

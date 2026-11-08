@@ -5,6 +5,9 @@ package com.deodardreams.dto.request;
  * which room product, and the stay dates. The price is NEVER taken from
  * this DTO — it's always calculated server-side from RoomProduct.basePrice.
  *
+ * DATE RULES: checkIn must be today or later, and checkOut must be after checkIn (at least one night).
+ * Nights = checkOut minus checkIn.
+ *
  * WHICH TABLES THIS TRIGGERS (not 1-to-1 — this DTO drives a multi-table flow):
  *
  * 1. GUESTS table — firstName/lastName/email/phoneNumber/city/state feed this.
@@ -16,8 +19,8 @@ package com.deodardreams.dto.request;
  *    confirm the product actually exists.
  *
  * 3. BOOKINGS table — a new row is always created here: guest_id (from step 1),
- *    room_product_id (from step 2), checkIn, checkOut, totalAmount (calculated
- *    server-side from basePrice, never from client input), status = PENDING.
+ *    room_product_id (from step 2), checkIn, checkOut, totalAmount (calculated server-side:
+ *    (basePrice × rooms + extra-guest charge) × nights, never from client input)
  *
  * 4. BOOKING_UNITS table — NOT directly from any field in this DTO. Once the
  *    Booking row exists, the service layer runs the room-allocation logic
@@ -25,9 +28,8 @@ package com.deodardreams.dto.request;
  *    physical room assigned — this is where availability/double-booking
  *    checks actually happen.
  *
- * A 5th table, PAYMENTS, gets its first row (status = CREATED) right after
- * this, once the Razorpay order is created — also not driven by this DTO
- * directly, but the very next step in the same overall flow.
+ * A 5th table, PAYMENTS: not created here. Payment rows are created later,
+ * when the guest starts paying for this booking.
  */
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -77,5 +79,16 @@ public class CreateBookingRequestDto {
     // Which product is being booked — e.g. "THREE_BHK". Required to know what the guest wants.
     @NotBlank
     private String roomProductCode;
+
+    // Business rule: the stay must be at least one night, so check-out must come AFTER check-in.
+    // Returns true if either date is missing, because the @NotNull checks above already report that.
+    // @AssertTrue means “this must be true, otherwise reject the request.”
+    @AssertTrue(message = "Check-out date must be after check-in date")
+    public boolean isCheckOutAfterCheckIn() {
+        if (checkIn == null || checkOut == null) {
+            return true;
+        }
+        return checkOut.isAfter(checkIn);
+    }
 
 }
